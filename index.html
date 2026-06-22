@@ -78,10 +78,10 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,Taho
 .msgEn{font-family:var(--la);font-weight:600;font-size:clamp(15px,4.6vw,21px);letter-spacing:2.5px;text-transform:uppercase;color:var(--egy-gold);line-height:1.2;opacity:0;animation:msgIn .46s 3600ms both}
 .cfx{position:absolute;inset:0;pointer-events:none;z-index:4}
 .chantRow{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0));z-index:6;display:flex;flex-direction:column;align-items:center;gap:7px;padding:0 18px}
-.sndbtn{position:absolute;top:calc(14px + env(safe-area-inset-top,0));left:50%;transform:translateX(-50%);z-index:7;display:flex;align-items:center;gap:7px;cursor:pointer;background:rgba(20,16,10,.62);border:1px solid rgba(192,158,95,.6);border-radius:999px;color:#f3e6c8;font-family:var(--la);font-weight:600;font-size:12px;letter-spacing:.4px;white-space:nowrap;max-width:94vw;padding:8px 15px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(0,0,0,.4);opacity:0;animation:fadeIn .5s 1700ms both}
-.sndbtn:active{transform:translateX(-50%) scale(.96)}
-.sndbtn.playing{background:rgba(206,17,38,.32);border-color:rgba(255,231,168,.85);color:#fff}
-.sndic{font-size:15px;line-height:1}
+.sndbtn{position:absolute;top:calc(16px + env(safe-area-inset-top,0));left:0;right:0;margin:0 auto;width:max-content;max-width:92vw;z-index:8;display:flex;align-items:center;gap:9px;cursor:pointer;background:linear-gradient(90deg,#e7b54d,#caa043);border:2px solid #ffe9b0;border-radius:999px;color:#2a1c05;font-family:var(--la);font-weight:700;font-size:15px;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;padding:13px 24px;box-shadow:0 6px 22px rgba(0,0,0,.45);opacity:0;animation:sndIn .45s 250ms both,sndAttn 1.7s 950ms ease-in-out infinite}
+.sndbtn:active{transform:scale(.96)}
+.sndbtn.playing{background:linear-gradient(90deg,#ce1126,#d81b34);border-color:#ffe9b0;color:#fff}
+.sndic{font-size:19px;line-height:1}
 .chant{font-family:var(--ar);font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(90deg,var(--egy-red),#d81b34);border:1.5px solid var(--egy-gold);border-radius:24px;padding:9px 24px 11px;min-height:58px;width:min(86vw,360px);max-width:100%;box-shadow:0 8px 26px rgba(206,17,38,.5),inset 0 1px 0 rgba(255,231,168,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;animation:btnIn .46s 6200ms both;will-change:transform,opacity}
 .chant.pulse{animation:btnPulse 2.4s ease-in-out infinite}
 .chant:active{transform:scale(.97);filter:brightness(1.12)}
@@ -108,6 +108,8 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,Taho
 @keyframes btnIn{0%{transform:translateY(24px);opacity:0}100%{transform:translateY(0);opacity:1}}
 @keyframes btnPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
 @keyframes glint{0%{opacity:0;transform:scale(0)}40%{opacity:1;transform:scale(1.4)}100%{opacity:0;transform:scale(0)}}
+@keyframes sndIn{0%{opacity:0;transform:translateY(-14px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes sndAttn{0%,100%{transform:scale(1);box-shadow:0 6px 22px rgba(0,0,0,.45)}50%{transform:scale(1.06);box-shadow:0 8px 30px rgba(231,181,77,.9),0 0 0 6px rgba(231,181,77,.28)}}
 
 @media (max-height:740px){ .flag{width:min(66vw,300px)} .salah{width:min(44vw,172px)} }
 @media (max-height:660px){ .flag{width:min(58vw,260px)} .salah{width:min(40vw,156px);margin-top:12px} .msg{margin-top:11px} }
@@ -193,7 +195,7 @@ function buildOverlay(){
     '<div class="chantRow">' +
       '<button class="chant" dir="rtl" aria-label="Close celebration. Ya habibti ya Masr.">' +
         '<span class="chantTiny">اضغط للإغلاق · press here to close</span>' +
-        '<span class="chantMain"><span class="hrt">♥</span><span>يا حبيبتي يا مصر يا مصر</span></span></button>' +
+        '<span class="chantMain" dir="ltr"><span class="hrt">♥</span><span dir="rtl">يا حبيبتي يا مصر يا مصر</span></span></button>' +
     '</div>';
   const flagImg = overlay.querySelector(".flagimg");
   flagImg.onerror = function(){ this.style.display = "none"; };   // CSS gradient bands remain as fallback
@@ -216,6 +218,7 @@ function buildOverlay(){
   if (snd && aud){
     snd.addEventListener("click", function(e){
       e.stopPropagation();
+      snd.style.animation = "none";   // stop the attention pulse once they have noticed/used it
       try{
         if (snd.classList.contains("playing")){ aud.pause(); aud.currentTime = 0; sndLabel(false); }
         else { aud.currentTime = 0; const p = aud.play(); if (p && p.catch) p.catch(function(){}); sndLabel(true); }   // always start from the beginning
@@ -305,10 +308,10 @@ function playEgyptWin(){
     later(function(){ const c = overlay.querySelector(".chant"); if (c) c.classList.add("pulse"); }, 6650);
     later(function(){ const f = overlay.querySelector(".flagFly"); if (f) f.style.willChange = "auto"; }, 8000);
     later(function(){ const c = overlay.querySelector(".chant"); if (c) try{ c.focus({preventScroll:true}); }catch(e){ c.focus(); } }, 6600);
-    later(function(){ closeEgyptWin(); }, 22000);                                       // safety auto-dismiss (after the longer arc)
+    // no auto-dismiss by request: the celebration stays open until the chant pill is pressed
   } else {
     later(function(){ const c = overlay.querySelector(".chant"); if (c) try{ c.focus({preventScroll:true}); }catch(e){ c.focus(); } }, 500);
-    later(function(){ closeEgyptWin(); }, 30000);
+    // no auto-dismiss (reduced motion): stays open until the chant pill is pressed
   }
 }
 
@@ -324,11 +327,10 @@ function closeEgyptWin(instant){
   try{ if (_prevFocus && _prevFocus.focus) _prevFocus.focus({preventScroll:true}); }catch(e){}
 }
 
-overlay.addEventListener("click", function(e){ if (e.target === overlay) closeEgyptWin(); });
+// tap-anywhere-to-close removed by request: only the يا حبيبتي يا مصر pill closes the celebration
 window.addEventListener("keydown", function(e){
   if (overlay.dataset.open !== "1") return;
-  if (e.key === "Escape"){ e.preventDefault(); closeEgyptWin(); }
-  if (e.key === "Tab"){ e.preventDefault(); const c = overlay.querySelector(".chant"); if (c) c.focus(); }
+  if (e.key === "Tab"){ e.preventDefault(); const c = overlay.querySelector(".chant"); if (c) c.focus(); }   // trap focus on the chant; pressing Enter/Space on it is the only close
 });
 
 // DEMO: fire on open, as if Egypt just won
