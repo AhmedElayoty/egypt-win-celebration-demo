@@ -224,7 +224,7 @@ function buildOverlay(){
   overlay.querySelector(".chant").addEventListener("click", closeEgyptWin);
   // soundtrack: assign + preload the instant the celebration is built, so a later tap plays instantly
   const aud = overlay.querySelector(".cheer");
-  if (aud && SONG_URI && SONG_URI.indexOf("data:") === 0){ try{ aud.src = SONG_URI; aud.preload = "auto"; aud.load(); }catch(e){} }
+  if (aud && SONG_URI && SONG_URI.indexOf("data:") === 0){ try{ aud.loop = true; aud.src = SONG_URI; aud.preload = "auto"; aud.load(); }catch(e){} }
   const snd = overlay.querySelector(".sndbtn");
   function sndLabel(on){
     if (!snd) return;
