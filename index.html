@@ -92,7 +92,7 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,Taho
 .sndbtn:active{transform:scale(.96)}
 .sndbtn.playing{font-size:12px;letter-spacing:.3px;text-transform:none;padding:7px 13px;background:rgba(20,16,10,.66);border:1px solid rgba(192,158,95,.6);color:#f3e6c8;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 3px 12px rgba(0,0,0,.4)}
 .sndic{font-size:15px;line-height:1}
-.chant{font-family:var(--ar);font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(90deg,var(--egy-red),#d81b34);border:1.5px solid var(--egy-gold);border-radius:24px;padding:9px 24px 11px;min-height:58px;width:min(86vw,360px);max-width:100%;box-shadow:0 8px 26px rgba(206,17,38,.5),inset 0 1px 0 rgba(255,231,168,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;animation:btnIn .46s 9000ms both;will-change:transform,opacity}
+.chant{font-family:var(--ar);font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(90deg,var(--egy-red),#d81b34);border:1.5px solid var(--egy-gold);border-radius:24px;padding:9px 24px 11px;min-height:58px;width:min(86vw,360px);max-width:100%;box-shadow:0 8px 26px rgba(206,17,38,.5),inset 0 1px 0 rgba(255,231,168,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none;animation:btnIn .46s 9000ms both;will-change:transform,opacity}
 .chant.pulse{animation:btnPulse 2.4s ease-in-out infinite}
 .chant:active{transform:scale(.97);filter:brightness(1.12)}
 .chantTiny{font-family:var(--la);font-weight:500;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,233,205,.7);line-height:1}
@@ -372,8 +372,10 @@ function playEgyptWin(){
     later(function(){ const c = overlay.querySelector(".chant"); if (c) c.classList.add("pulse"); }, 9500);
     later(function(){ const f = overlay.querySelector(".flagFly"); if (f) f.style.willChange = "auto"; }, 8000);
     later(function(){ const c = overlay.querySelector(".chant"); if (c) try{ c.focus({preventScroll:true}); }catch(e){ c.focus(); } }, 9100);
+    later(function(){ const c = overlay.querySelector(".chant"); if (c) c.style.pointerEvents = "auto"; }, 9000);   // only clickable once it has appeared (no premature close by tapping its empty spot)
     // no auto-dismiss by request: the celebration stays open until the chant pill is pressed
   } else {
+    const _rc = overlay.querySelector(".chant"); if (_rc) _rc.style.pointerEvents = "auto";   // reduced motion: chant shows at once, so clickable immediately
     later(function(){ const c = overlay.querySelector(".chant"); if (c) try{ c.focus({preventScroll:true}); }catch(e){ c.focus(); } }, 500);
     // no auto-dismiss (reduced motion): stays open until the chant pill is pressed
   }
