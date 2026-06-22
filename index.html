@@ -45,6 +45,16 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,Taho
 .demo-note{text-align:center;color:var(--dim);font-size:12px;margin:18px 2px 6px;letter-spacing:.3px}
 .replay{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0));z-index:50;background:linear-gradient(90deg,var(--egy-red),#d81b34);color:#fff;border:1.5px solid var(--egy-gold);border-radius:999px;padding:12px 20px;font-weight:700;font-size:15px;letter-spacing:.3px;cursor:pointer;box-shadow:0 8px 24px rgba(206,17,38,.45)}
 .replay:active{transform:translateX(-50%) scale(.97)}
+.qa{margin:16px 2px 8px;background:rgba(18,24,38,.7);border:1px solid var(--line);border-radius:14px;padding:13px}
+.qa-h{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--egy-gold);font-weight:700;margin-bottom:6px;text-align:center}
+.qa-sub{font-size:11px;color:var(--dim);text-align:center;margin-bottom:10px}
+.qb{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:start;margin:6px 0;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:#0f1421;color:var(--ink);font-size:13px;font-weight:600;cursor:pointer}
+.qb:active{transform:scale(.99);filter:brightness(1.15)}
+.qb .tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.4px}
+.qb.win{border-color:rgba(0,168,90,.4)} .qb.win .tag{color:var(--egy-mint)}
+.qb.no{border-color:rgba(255,138,138,.35)} .qb.no .tag{color:#ff9a9a}
+#qaToast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(18px);z-index:60;background:#1a1320;border:1px solid rgba(255,138,138,.5);color:#ffe0e0;padding:11px 16px;border-radius:14px;font-size:13px;font-weight:600;max-width:92vw;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#qaToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .botnav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-content:space-around;background:rgba(11,15,26,.94);border-top:1px solid var(--line);padding:7px 0 calc(7px + env(safe-area-inset-bottom,0))}
 .botnav span{font-size:11px;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:3px}
 .botnav span.on{color:var(--egy-green)}
@@ -145,9 +155,18 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,Taho
     <div class="team"><span class="flagdot">C</span><span class="tn">Team C</span><span class="sc">-</span></div>
     <div class="team"><span class="flagdot">D</span><span class="tn">Team D</span><span class="sc">-</span></div>
   </div>
-  <p class="demo-note">Demo preview · this is the celebration that plays when Egypt wins</p>
+  <div class="qa">
+    <div class="qa-h">🧪 Trigger test</div>
+    <div class="qa-sub">Tap a scenario · it runs the real rule and either plays the celebration or says why not</div>
+    <button class="qb win" onclick="runScenario('winIran')">Egypt WINS vs Iran<span class="tag">✓ celebrate</span></button>
+    <button class="qb win" onclick="runScenario('drawIran')">Egypt DRAWS vs Iran<span class="tag">✓ celebrate</span></button>
+    <button class="qb win" onclick="runScenario('lose2nd')">Egypt LOSES vs Iran · ends 2nd<span class="tag">✓ celebrate</span></button>
+    <button class="qb no" onclick="runScenario('lose3rd')">Egypt LOSES vs Iran · ends 3rd<span class="tag">✗ none</span></button>
+    <button class="qb no" onclick="runScenario('loseLive')">Egypt LOSES · Belgium-NZ still live<span class="tag">✗ wait</span></button>
+    <button class="qb win" onclick="runScenario('winOther')">Egypt WINS another match<span class="tag">✓ celebrate</span></button>
+    <button class="qb no" onclick="runScenario('drawOther')">Egypt DRAWS another match<span class="tag">✗ none</span></button>
+  </div>
 </main>
-<button class="replay" onclick="playEgyptWin()">🎉 Replay celebration</button>
 <nav class="botnav">
   <span><b>🏠</b>Home</span><span class="on"><b>⚽</b>Matches</span><span><b>📊</b>Groups</span><span><b>🎯</b>Predict</span><span><b>⋯</b>More</span>
 </nav>
@@ -332,8 +351,55 @@ window.addEventListener("keydown", function(e){
   if (e.key === "Tab"){ e.preventDefault(); const c = overlay.querySelector(".chant"); if (c) c.focus(); }   // trap focus on the chant; pressing Enter/Space on it is the only close
 });
 
-// DEMO: fire on open, as if Egypt just won
-window.addEventListener("load", function(){ setTimeout(playEgyptWin, 450); });
+/* ===== the REAL trigger rule + scenario tester ===== */
+const EGY = "Egypt", SPECIAL_OPP = "iran";   // Egypt's matchday-3 special game vs Iran
+function _isPost(e){ return e && e.status && e.status.type && e.status.type.state === "post"; }
+function egyMatchResult(e){
+  const comp = e && e.competitions && e.competitions[0]; if(!comp) return null;
+  const cs = comp.competitors || [];
+  const egy = cs.find(c => c.team && c.team.displayName === EGY); if(!egy) return null;
+  const opp = cs.find(c => c !== egy); if(!opp) return null;
+  const es = +egy.score, os = +opp.score; if(!isFinite(es)||!isFinite(os)) return null;
+  let res = es>os?"win":(es<os?"loss":"draw");
+  if(es===os && egy.shootoutScore!=null && opp.shootoutScore!=null) res = (+egy.shootoutScore>+opp.shootoutScore)?"win":"loss";
+  return { res, oppName:(opp.team&&opp.team.displayName)||"", es, os };
+}
+function egyptGroupRank(standings){
+  if(!Array.isArray(standings)) return null;
+  const i = standings.findIndex(r => (r.team||r.name||"")===EGY); if(i<0) return null;
+  const row = standings[i]; return isFinite(+row.rank) ? +row.rank : i+1;
+}
+// the celebration rule: general = win only; Egypt-vs-Iran special = win/draw, or loss only if group settled and Egypt top 2
+function celebrationVerdict(events, standings, groupSettled){
+  const ms = (events||[]).filter(e => _isPost(e) && egyMatchResult(e));
+  if(!ms.length) return { celebrate:false, reason:"Egypt has no finished match" };
+  ms.sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const r = egyMatchResult(ms[ms.length-1]);
+  const special = r.oppName.toLowerCase().indexOf(SPECIAL_OPP) >= 0;
+  if(r.res==="win") return { celebrate:true, reason:"Egypt won" };
+  if(!special) return { celebrate:false, reason:"not a win (general rule)" };
+  if(r.res==="draw") return { celebrate:true, reason:"draw vs Iran secures qualification" };
+  if(!groupSettled) return { celebrate:false, reason:"Egypt lost; Belgium vs New Zealand not finished yet" };
+  const rank = egyptGroupRank(standings);
+  if(rank!=null && rank<=2) return { celebrate:true, reason:"Egypt lost but finished #"+rank+" (qualified)" };
+  return { celebrate:false, reason:"Egypt lost and finished #"+rank+" (out)" };
+}
+function _ev(opp,eg,og,state,date){ return {date:date||"2026-06-25T16:00Z",status:{type:{state:state||"post"}},competitions:[{competitors:[{team:{displayName:"Egypt"},score:eg},{team:{displayName:opp},score:og}]}]}; }
+function _stand(rank){ const others=["Belgium","Iran","New Zealand"]; let ni=0; const rows=[]; for(let i=1;i<=4;i++) rows.push({team:i===rank?"Egypt":others[ni++], rank:i}); return rows; }
+const SCEN = {
+  winIran:{events:[_ev("Iran",2,1)],standings:_stand(1),settled:true},
+  drawIran:{events:[_ev("Iran",1,1)],standings:_stand(2),settled:true},
+  lose2nd:{events:[_ev("Iran",0,1)],standings:_stand(2),settled:true},
+  lose3rd:{events:[_ev("Iran",0,1)],standings:_stand(3),settled:true},
+  loseLive:{events:[_ev("Iran",0,1)],standings:_stand(2),settled:false},
+  winOther:{events:[_ev("Belgium",3,0,"post","2026-06-19T16:00Z")],standings:_stand(1),settled:true},
+  drawOther:{events:[_ev("Belgium",1,1,"post","2026-06-19T16:00Z")],standings:_stand(2),settled:true}
+};
+let _toastT;
+function showToast(msg){ let t=document.getElementById("qaToast"); if(!t){ t=document.createElement("div"); t.id="qaToast"; document.body.appendChild(t); } t.textContent=msg; t.classList.add("show"); clearTimeout(_toastT); _toastT=setTimeout(function(){ t.classList.remove("show"); },4500); }
+function runScenario(name){ const s=SCEN[name]; if(!s) return; const v=celebrationVerdict(s.events,s.standings,s.settled); if(v.celebrate){ playEgyptWin(); } else { showToast("🚫 No celebration · "+v.reason); } }
+
+// scenario-tester mode: open on the backdrop (no auto-play); tap a scenario to test the rule
 </script>
 </body>
 </html>
