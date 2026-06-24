@@ -88,7 +88,7 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,Taho
 .msgEn{font-family:var(--la);font-weight:600;font-size:clamp(15px,4.6vw,21px);letter-spacing:2.5px;text-transform:uppercase;color:var(--egy-gold);line-height:1.2;opacity:0;animation:msgIn .46s 3600ms both}
 .cfx{position:absolute;inset:0;pointer-events:none;z-index:4}
 .chantRow{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0));z-index:6;display:flex;flex-direction:column;align-items:center;gap:7px;padding:0 18px}
-.sndbtn{position:absolute;top:calc(15px + env(safe-area-inset-top,0));left:0;right:0;margin:0 auto;width:max-content;max-width:92vw;z-index:8;display:flex;align-items:center;gap:8px;cursor:pointer;background:linear-gradient(90deg,#e7b54d,#caa043);border:2px solid #ffe9b0;border-radius:999px;color:#2a1c05;font-family:var(--la);font-weight:700;font-size:12px;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;padding:8px 15px;box-shadow:0 5px 18px rgba(0,0,0,.4);animation:sndIn .45s 250ms both,sndAttn 1.7s 950ms ease-in-out infinite}
+.sndbtn{position:relative;margin-top:16px;width:max-content;max-width:92vw;z-index:8;display:flex;align-items:center;gap:8px;cursor:pointer;background:linear-gradient(90deg,#e7b54d,#caa043);border:2px solid #ffe9b0;border-radius:999px;color:#2a1c05;font-family:var(--la);font-weight:700;font-size:12px;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;padding:8px 15px;box-shadow:0 5px 18px rgba(0,0,0,.4);animation:sndIn .45s 1600ms both,sndAttn 1.7s 2400ms ease-in-out infinite}
 .sndbtn:active{transform:scale(.96)}
 .sndbtn.playing{font-size:12px;letter-spacing:.3px;text-transform:none;padding:7px 13px;background:rgba(20,16,10,.66);border:1px solid rgba(192,158,95,.6);color:#f3e6c8;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 3px 12px rgba(0,0,0,.4)}
 .sndic{font-size:15px;line-height:1}
@@ -243,6 +243,8 @@ function buildOverlay(){
         '<img class="flagimg" alt="Flag of Egypt">' +
         '<div class="sweep"></div><div class="glint gEagle"></div>' +
       '</div></div>' +
+      '<button class="sndbtn" aria-label="Play the celebration song from the start">' +
+        '<span class="sndic">🔊</span><span class="sndtx">اضغط للصوت · press here for sound</span></button>' +
       '<div class="salah">' +
         '<img alt="Mohamed Salah celebrating Egypt\'s win">' +
         '<div class="sweep"></div><div class="glint gSalah"></div>' +
@@ -253,8 +255,6 @@ function buildOverlay(){
       '</div>' +
     '</div>' +
     '<canvas class="cfx" aria-hidden="true"></canvas>' +
-    '<button class="sndbtn" aria-label="Play the celebration song from the start">' +
-      '<span class="sndic">🔊</span><span class="sndtx">اضغط للصوت · press here for sound</span></button>' +
     '<audio class="cheer" preload="auto"></audio>' +
     '<div class="chantRow">' +
       '<button class="chant" dir="rtl" aria-label="Close celebration. Ya habibti ya Masr.">' +
