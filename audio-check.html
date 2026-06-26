@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WCup Fans Audio Check</title>
+<style>
+  :root{color-scheme:dark;--bg:#071021;--panel:#101b33;--line:#24314f;--gold:#f4c95d;--cyan:#3fd3ff;--txt:#f5f7ff;--dim:#a9b3cd}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100svh;display:grid;place-items:center;background:radial-gradient(circle at 50% 0,#17315f 0,#071021 46%,#040813 100%);color:var(--txt);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}
+  main{width:min(520px,calc(100vw - 28px));border:1px solid var(--line);background:rgba(16,27,51,.92);border-radius:14px;padding:22px;box-shadow:0 22px 70px rgba(0,0,0,.45)}
+  h1{margin:0 0 8px;font-size:25px;line-height:1.08}
+  p{margin:0 0 16px;color:var(--dim);line-height:1.45}
+  .path{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--gold)}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+  button{appearance:none;border:0;border-radius:10px;padding:12px 16px;font-weight:800;color:#06101f;background:var(--gold);cursor:pointer}
+  button.secondary{background:#1f2d4b;color:var(--txt);border:1px solid var(--line)}
+  .status{min-height:24px;margin-top:8px;color:var(--cyan);font-weight:700}
+  .meter{height:9px;border-radius:99px;background:#0a1328;overflow:hidden;border:1px solid var(--line)}
+  .meter span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--cyan));transition:width .2s linear}
+</style>
+</head>
+<body>
+<main>
+  <h1>Egypt Celebration Audio Check</h1>
+  <p>This page loads the audio as a separate file at <span class="path">./egy-song.mp3?v=1</span>, matching the main app.</p>
+  <audio id="song" preload="auto" loop src="./egy-song.mp3?v=1"></audio>
+  <div class="actions">
+    <button id="playBtn" type="button">Play Audio</button>
+    <button id="stopBtn" class="secondary" type="button">Stop</button>
+  </div>
+  <div class="meter" aria-hidden="true"><span id="bar"></span></div>
+  <div id="status" class="status">Checking audio file...</div>
+</main>
+<script>
+const audio = document.getElementById("song");
+const statusEl = document.getElementById("status");
+const bar = document.getElementById("bar");
+function setStatus(msg){ statusEl.textContent = msg; }
+fetch("./egy-song.mp3?v=1", { cache: "no-store" })
+  .then(r => {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const len = r.headers.get("content-length");
+    setStatus("Audio file reachable" + (len ? " - " + Number(len).toLocaleString() + " bytes" : "") + ".");
+  })
+  .catch(e => setStatus("Audio file failed: " + e.message));
+document.getElementById("playBtn").addEventListener("click", async () => {
+  try {
+    audio.loop = true;
+    await audio.play();
+    setStatus("Playing. If you hear the chant, the deployed audio path works.");
+  } catch (e) {
+    setStatus("Playback blocked or failed: " + (e && e.message ? e.message : e));
+  }
+});
+document.getElementById("stopBtn").addEventListener("click", () => {
+  audio.pause();
+  audio.currentTime = 0;
+  setStatus("Stopped.");
+});
+audio.addEventListener("timeupdate", () => {
+  const pct = audio.duration ? Math.min(100, (audio.currentTime / audio.duration) * 100) : 0;
+  bar.style.width = pct + "%";
+});
+audio.addEventListener("error", () => setStatus("Browser could not load the MP3."));
+</script>
+</body>
+</html>
