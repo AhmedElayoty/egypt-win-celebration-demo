@@ -257,9 +257,9 @@ function buildOverlay(){
     '<canvas class="cfx" aria-hidden="true"></canvas>' +
 
     '<div class="chantRow">' +
-      '<button class="chant" dir="rtl" aria-label="Close celebration. Ya habibti ya Masr.">' +
+      '<button class="chant" dir="rtl" aria-label="Close celebration.">' +
         '<span class="chantTiny">اضغط للإغلاق · press here to close</span>' +
-        '<span class="chantMain" dir="ltr"><span class="hrt">♥</span><span dir="rtl">يا حبيبتي يا مصر يا مصر</span></span></button>' +
+        '<span class="chantMain" dir="ltr"><span class="hrt">♥</span><span dir="rtl">هتحب مين غيرها؟</span></span></button>' +
     '</div>';
   const flagImg = overlay.querySelector(".flagimg");
   flagImg.onerror = function(){ this.style.display = "none"; };   // CSS gradient bands remain as fallback
@@ -376,7 +376,7 @@ function closeEgyptWin(instant){
   try{ if (_prevFocus && _prevFocus.focus) _prevFocus.focus({preventScroll:true}); }catch(e){}
 }
 
-// tap-anywhere-to-close removed by request: only the يا حبيبتي يا مصر pill closes the celebration
+// tap-anywhere-to-close removed by request: only the close pill closes the celebration
 window.addEventListener("keydown", function(e){
   if (overlay.dataset.open !== "1") return;
   if (e.key === "Tab"){ e.preventDefault(); const c = overlay.querySelector(".chant"); if (c) c.focus(); }   // trap focus on the chant; pressing Enter/Space on it is the only close
